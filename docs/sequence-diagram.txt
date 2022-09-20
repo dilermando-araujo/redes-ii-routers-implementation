@@ -1,0 +1,37 @@
+title Diagrama de sequência do envio de um pacote
+
+Host II->Switch: send(Packet arpReq)
+
+Switch->Switch: learnMac(Packet arpReq)
+note right of Switch: O Switch irá guardar na sua tabela de \nendereçamento o MAC de origem e \na porta que veio o pacote
+
+Switch->+Switch: broadcast(Packet arpReq)
+note left of Switch: No broadcast, o pacote será enviado para\ntodos os hosts conectados no Switch,\ndiferentes da porta de origem, nesse exemplo,\nHost I e Host II
+note left of Switch: O broadcast acontece quando o Switch\nnão conhece a porta que leva ao MAC\nde destino, ou quando é solicitado\nexplicitamente no pacote, como é\nno caso do Arp Request
+
+Switch->Host I: send(Packet arpReq)
+
+Host I->Host I: learnIp(Packet arpReq)
+note right of Host I: O host irá guardar na sua tabela ARP \na correspondência IP-MAC
+
+Host I->Host I: checkArp(Packet arpReq)
+note right of Host I: O host irá checar se o arp request é para ele, \npara melhor visualização, faremos que no host I \no retorno seja falso, com isso, ele descartará \no pacote
+
+Switch->-Host III: send(Packet arpReq)
+
+Host III->Host III: learnIp(Packet arpReq)
+Host III->+Host III: checkArp(Packet arpReq)
+Host III->-Switch: send(Packet arpReply)
+note left of Host III: Caso o host identifique que o ARP é para \nseu MAC, ele irá enviar um pacote do tipo \nARP Reply
+
+Switch->Switch: learnMac(Packet arpReply)
+Switch->Host II: send(Packet arpReply)
+
+Host II->Host II: learnIp(Packet arpReply)
+Host II->Host II: checkArp(Packet arpReply)
+
+Host II->Switch: send(Packet packet)
+note right of Host II: Com o MAC resultante o protocolo\nARP, o Host II consegue ter o MAC\npara o IP que ele deseja enviar o pacote
+
+Switch->Host III: send(Packet packet)
+note right of Switch: Como o Switch já conhece em qual \nporta está o MAC do Host III, \nele consegue enviar diretamente
