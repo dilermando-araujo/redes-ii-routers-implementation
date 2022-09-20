@@ -5,11 +5,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Host implements Device {
+public class Host implements DeviceInterface {
 	private String mac;
 	private String ip;
 	
-	private Device node;
+	private DeviceInterface node;
 	
 	private Map<String, String> arpTable = new HashMap<>();
 	
@@ -55,7 +55,7 @@ public class Host implements Device {
 		System.out.println(this.mac + ": " + packet.getPayload());
 	}
 	
-	public void connect(Device node) {
+	public void connect(DeviceInterface node) {
 		this.node = node;
 	}
 	
@@ -81,7 +81,7 @@ public class Host implements Device {
 		arpPacket.setMacTo("ff:ff:ff:ff:ff:ff");
 		arpPacket.setPayload("ARP:REQ");
 		
-		Device node = this.node;
+		DeviceInterface node = this.node;
 		new Thread() {
 			public void run() {
 				node.send(arpPacket);
@@ -106,6 +106,12 @@ public class Host implements Device {
 		packet.setMacTo(this.getMacByIp(ipDestination));
 		packet.setPayload(payload);
 		
-		this.node.send(packet);
+		DeviceInterface node = this.node;
+		
+		new Thread() {
+			public void run() {
+				node.send(packet);
+			}
+		}.start();
 	}
 }

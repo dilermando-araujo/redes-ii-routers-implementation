@@ -38,7 +38,7 @@ public class Switch {
 		}
 	}
 	
-	public void connect(Device node, int port) {
+	public void connect(DeviceInterface node, int port) {
 		this.ports[port].connect(node);
 	}
 	

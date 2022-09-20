@@ -2,9 +2,9 @@ package app;
 
 public class ConnectHelper {
 
-	public void connectHostToSwitch(Host host, Switch switchNode, int switchPort) {
-		host.connect(switchNode.getPortByPosition(switchPort));
-		switchNode.connect(host, switchPort);
+	public void connect(DeviceInterface in, DeviceInterface out) {
+		in.connect(out);
+		out.connect(in);
 	}
-	
+
 }

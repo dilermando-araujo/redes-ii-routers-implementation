@@ -1,9 +1,9 @@
 package app;
 
-public class SwitchPort implements Device {
+public class SwitchPort implements DeviceInterface {
 
 	private Integer port;
-	private Device node;
+	private DeviceInterface node;
 	private Switch manager;
 	
 	public Integer getPort() {
@@ -20,13 +20,13 @@ public class SwitchPort implements Device {
 		this.manager.send(packet, this);
 	}
 
-	public void connect(Device node) {
+	public void connect(DeviceInterface node) {
 		this.node = node;
 	}
 
 	@Override
 	public void receive(Packet packet) {
-		Device node = this.node;
+		DeviceInterface node = this.node;
 		
 		new Thread() {
 			public void run() {
