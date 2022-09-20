@@ -16,11 +16,16 @@ public class Switch {
 	}
 	
 	public void send(Packet packet, SwitchPort port) {
+		if (packet.getMacTo().equals("ff:ff:ff:ff:ff:ff")) {
+			this.broadcast(packet, port);
+			return;
+		}
+		
 		macTable.put(packet.getMacFrom(), port);
 		
 		SwitchPort portDestination = macTable.get(packet.getMacTo());
 		if (portDestination != null)
-			portDestination.send(packet);
+			portDestination.receive(packet);
 		else
 			this.broadcast(packet, port);
 	}
@@ -29,12 +34,11 @@ public class Switch {
 		for (SwitchPort switchPort : this.ports) {
 			if (switchPort == portSource) continue;
 			
-			System.out.println(switchPort.getPort());
 			switchPort.receive(packet);
 		}
 	}
 	
-	public void connect(SendPacket node, int port) {
+	public void connect(Device node, int port) {
 		this.ports[port].connect(node);
 	}
 	

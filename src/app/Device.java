@@ -1,6 +1,6 @@
 package app;
 
-public interface SendPacket {
+public interface Device {
 	void send(Packet packet);
 	void receive(Packet packet);
 }
