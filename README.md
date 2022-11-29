@@ -1,13 +1,10 @@
-# redes-ii-arp-implementation
-O objetivo dessa aplicação é implementar em algo nível o protocolo ARP, utilizado pelos dispositivos de rede para encontrar um MAC a partir de um IP. O funcionamento desse protocolo é descrito no diagrama abaixo:
-
-![Diagrama de sequência do protocolo ARP](docs/sequence-diagram.png)
+# redes-ii-router-implementation
 
 ## Montando a infraestrutura
 Na classe principal, app.Application, existe um exemplo mostrando as funções necessárias para criar uma infraestrutura e enviar pacotes por ela.
 
 ## Verificando se os pacotes estão chegando ao seu destino
-Para saber se o pacote chegou ao destino correto, sempre que um host recebe uma mensagem, por padrão, ele irá disparar um log contendo a mensagem recebida e o seu MAC.
+Para saber se o pacote chegou ao destino correto, sempre que um host recebe uma mensagem, por padrão, ele irá disparar um log contendo a mensagem recebida, o IP de origem e o de destino.
 
 ## Como executar a aplicação
 Algumas formas de executar essa aplicação são:
