@@ -1,11 +1,9 @@
 package app;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Switch {
+	
 	SwitchPort[] ports;
-	Map<String, SwitchPort> macTable = new HashMap<>();
+	MacTable macTable = new MacTable();
 	
 	public Switch(int ports) {
 		this.ports = new SwitchPort[ports];
@@ -21,9 +19,9 @@ public class Switch {
 			return;
 		}
 		
-		macTable.put(packet.getMacFrom(), port);
+		macTable.learnMacFromPacket(packet, port);
 		
-		SwitchPort portDestination = macTable.get(packet.getMacTo());
+		SwitchPort portDestination = macTable.getPacketDestinationPort(packet);
 		if (portDestination != null)
 			portDestination.receive(packet);
 		else

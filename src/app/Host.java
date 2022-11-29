@@ -1,47 +1,26 @@
 package app;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
-
 public class Host implements DeviceInterface {
 	private String mac;
 	private String ip;
+	private Integer mask;
+	private String gateway;
 	
 	private DeviceInterface node;
 	
-	private Map<String, String> arpTable = new HashMap<>();
+	private ArpTable arpTable = new ArpTable();
 	
-	public void showArpTable() {
-		for (Map.Entry<String, String> entry : this.arpTable.entrySet()) {
-			System.out.println(entry.getKey() + " - " + entry.getValue());
-		}
-	}
+	private NetService netService = new NetService();
 	
 	@Override
 	public void send(Packet packet) {
 		
-		if (packet.getPayload().startsWith("ARP:REQ")) {
-			if (packet.getIpTo().equals(this.ip)) {
-				Packet arpPacket = new Packet();
-				
-				arpPacket.setIpFrom(this.ip);
-				arpPacket.setMacFrom(this.mac);
-				arpPacket.setIpTo(ip);
-				arpPacket.setMacTo("ff:ff:ff:ff:ff:ff");
-				arpPacket.setPayload("ARP:REP");
-				
-				new Thread() {
-					public void run() {
-						node.send(arpPacket);
-					}
-				}.start();
-			}
-		}
-		
 		if (packet.getPayload().startsWith("ARP:")) {
-			arpTable.put(packet.getIpFrom(), packet.getMacFrom());
+			arpTable.learnIpMac(packet);
+			
+			if (packet.getPayload().startsWith("ARP:REQ")) {
+				arpTable.responseArpRequest(packet, this.ip, this.mac, packet.getIpFrom(), this.node);
+			}
 		}
 		
 		if (packet.getMacTo().equals(this.mac)) {
@@ -51,8 +30,10 @@ public class Host implements DeviceInterface {
 		}
 	}
 	
-	public void receive(Packet packet) {			
-		System.out.println(this.mac + ": " + packet.getPayload());
+	public void receive(Packet packet) {
+		System.out.println(String.format("[%s -> %s] %s", 
+			packet.getIpFrom(), packet.getIpTo(), packet.getPayload()
+		));
 	}
 	
 	public void connect(DeviceInterface node) {
@@ -69,41 +50,37 @@ public class Host implements DeviceInterface {
 		return this;
 	}
 	
+	public Host setMask(Integer mask) {
+		this.mask = mask;
+		return this;
+	}
+	
+	public Host setGateway(String gateway) {
+		this.gateway = gateway;
+		return this;
+	}
+	
 	public String getMacByIp(String ip) {
-		String mac = this.arpTable.get(ip);
+		String mac = arpTable.getMacByIp(ip);
 		if (mac != null) return mac;
 		
-		Packet arpPacket = new Packet();
-		
-		arpPacket.setIpFrom(this.ip);
-		arpPacket.setMacFrom(this.mac);
-		arpPacket.setIpTo(ip);
-		arpPacket.setMacTo("ff:ff:ff:ff:ff:ff");
-		arpPacket.setPayload("ARP:REQ");
-		
-		DeviceInterface node = this.node;
-		new Thread() {
-			public void run() {
-				node.send(arpPacket);
-			}
-		}.start();
-		
-		LocalDateTime startAt = LocalDateTime.now();
-		while (mac == null && ChronoUnit.SECONDS.between(startAt, LocalDateTime.now()) < 5) {
-			mac = this.arpTable.get(ip);
-		}
-		
-		if (mac == null) throw new RuntimeException();
-		return mac;
+		return arpTable.executeArpRequest(this.ip, this.mac, ip, this.node);
 	}
 	
 	public void createAndSendPacket(String payload, String ipDestination) {
+		String hostAddressNet = netService.getAddressNetByIpAsString(this.ip, this.mask);
 		Packet packet = new Packet();
 		
 		packet.setIpFrom(this.ip);
 		packet.setMacFrom(this.mac);
 		packet.setIpTo(ipDestination);
-		packet.setMacTo(this.getMacByIp(ipDestination));
+		
+		packet.setMacTo(
+			netService.checkIpInNet(ipDestination, hostAddressNet, this.mask)
+				? this.getMacByIp(ipDestination)
+				: this.getMacByIp(this.gateway)
+		);
+		
 		packet.setPayload(payload);
 		
 		DeviceInterface node = this.node;
